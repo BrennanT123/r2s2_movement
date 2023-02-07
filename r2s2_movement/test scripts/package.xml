@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>r2s2_calibration</name>
+    <version>0.0.0</version>
+    <description>The r2s2_calibration package</description>
+
+    <author email="ferry.69@osu.edu">J. Ferry</author>
+    <maintainer email="swick.70@osu.edu">swick.70</maintainer>
+
+    <license>Apache 2.0</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+  
+    <depend>rospy</depend>
+
+    <depend>std_msgs</depend>
+    <depend>sensor_msgs></depend>
+    <depend>geometry_msgs</depend>
+    <build_depend>message_generation</build_depend>
+    
+    <exec_depend>message_runtime</exec_depend>
+    <exec_depend>realsense_camera</exec_depend>
+
+</package>

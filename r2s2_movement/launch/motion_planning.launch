@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Tier1 Launch File: Cartesian Demo -->
+
+<launch>
+
+  <node pkg="r2s2_movement" type="motion_planning.py" name="r2s2_movement" output="screen" />
+
+</launch>
