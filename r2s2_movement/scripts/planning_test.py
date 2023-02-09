@@ -57,7 +57,7 @@ class r2s2arm(object):
     self.glider_name = ''
     self.robot = moveit_commander.RobotCommander()
     self.scene = moveit_commander.PlanningSceneInterface()
-    self.group_name = "mh5l_arm"
+    self.group_name = "mh5l"
     self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
     self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
                                                    moveit_msgs.msg.DisplayTrajectory,
