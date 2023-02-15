@@ -4,6 +4,7 @@
 from __future__ import print_function
 from six.moves import input
 
+import re
 import sys
 import copy
 import rospy
@@ -22,8 +23,7 @@ try:
 except:  # For Python 2 compatibility
     from math import pi, fabs, cos, sqrt
 
-    #tau = 2.0 * pi
-    tau = 0
+    tau = 2.0 * pi
 
     def dist(p, q):
         return sqrt(sum((p_i - q_i) ** 2.0 for p_i, q_i in zip(p, q)))
@@ -136,18 +136,18 @@ class MoveGroupRcycl(object):
 
 
 
-    def go_to_joint_state(self):
+    def go_to_joint_state(self, goals):
       
         move_group = self.move_group
-
+        print(goals)
     
         joint_goal = move_group.get_current_joint_values()
-        joint_goal[0] = .151
-        joint_goal[1] = .51
-        joint_goal[2] = .33
-        joint_goal[3] = 2.25
-        joint_goal[4] = .125
-        joint_goal[5] = 1.012 
+        joint_goal[0] = goals[0]
+        joint_goal[1] = goals[1]
+        joint_goal[2] = goals[2]
+        joint_goal[3] = goals[3]
+        joint_goal[4] = goals[4]
+        joint_goal[5] = goals[5]  
 
         move_group.go(joint_goal, wait=True)
 
@@ -164,24 +164,22 @@ class MoveGroupRcycl(object):
 
 
         pose_goal = geometry_msgs.msg.Pose()
+        pose_goal.orientation.w = 1.0
+        pose_goal.position.x = 0.4
+        pose_goal.position.y = 0.1
+        pose_goal.position.z = 0.4
         pose_goal.orientation.w = 1.0000001
         pose_goal.orientation.x = .1000001
         pose_goal.orientation.y = .1000002
         pose_goal.orientation.z = .1000001
-        
-        pose_goal.position.x = .8
-        pose_goal.position.y = .5
-        pose_goal.position.z = .2
 
         move_group.set_pose_target(pose_goal)
 
- 
+
         success = move_group.go(wait=True)
 
         move_group.stop()
- 
         move_group.clear_pose_targets()
-
 
         current_pose = self.move_group.get_current_pose().pose
         return all_close(pose_goal, current_pose, 0.01)
@@ -217,16 +215,19 @@ class MoveGroupRcycl(object):
         
 def main():
     try:
+        message ="asdlf 0.9 as;dlkjf 0.1214 alsdfjk 0.15 klljsdf 0.123 klsjdflkj 1.0 sdfgsdfglkj 0.123"
+        coord = [float(s) for s in re.findall(r'[\d]*[.][\d]+',message)]
 
         tutorial = MoveGroupRcycl()
 
         input(
             "============ Press `Enter` to execute a movement using a joint state goal ..."
         )
-        tutorial.go_to_joint_state()
+        tutorial.go_to_joint_state(coord)
+        print(coord)
 
-        input("============ Press `Enter` to execute a movement using a pose goal ...")
-        tutorial.go_to_pose_goal()
+        #input("============ Press `Enter` to execute a movement using a pose goal ...")
+        #tutorial.go_to_pose_goal()
 
 
     except rospy.ROSInterruptException:
