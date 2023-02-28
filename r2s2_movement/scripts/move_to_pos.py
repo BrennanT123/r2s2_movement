@@ -11,10 +11,12 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
+from math import pi, radians
 
 
 from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 
 ## from moveit example code
@@ -159,32 +161,36 @@ class MoveGroupRcycl(object):
 
 
     def go_to_pose_goal(self):
+        pose = [.1, -.5, 0.3, 0, radians(90),radians(90)]
 
-        move_group = self.move_group
-
+        #move_group = self.move_group
+        q_goal = quaternion_from_euler(pose[3],pose[4],pose[5],axes='sxyz')
 
         pose_goal = geometry_msgs.msg.Pose()
-        pose_goal.orientation.w = 1.0
-        pose_goal.position.x = 0.4
-        pose_goal.position.y = 0.1
-        pose_goal.position.z = 0.4
-        pose_goal.orientation.w = 1.0000001
-        pose_goal.orientation.x = .1000001
-        pose_goal.orientation.y = .1000002
-        pose_goal.orientation.z = .1000001
 
-        move_group.set_pose_target(pose_goal)
+        pose_goal.position.x = pose[0]
+        pose_goal.position.y = pose[1]
+        pose_goal.position.z = pose[2]
+        pose_goal.orientation.w = q_goal[0]
+        pose_goal.orientation.x = q_goal[1]
+        pose_goal.orientation.y = q_goal[2]
+        pose_goal.orientation.z = q_goal[3]
 
 
-        success = move_group.go(wait=True)
+        self.move_group.set_pose_target(pose_goal)
 
-        move_group.stop()
-        move_group.clear_pose_targets()
+        #execute planning and go to position
+        plan = self.move_group.go(wait=True)
+        #stops so no residual movement
+        plan = self.move_group.stop()
+
+        self.move_group.clear_pose_targets()
+
 
         current_pose = self.move_group.get_current_pose().pose
         return all_close(pose_goal, current_pose, 0.01)
 
-    def plan_cartesian_throw_path(self, scale=1):
+    def plan_cartesian_path(self, scale=1):
         ## Plan Cartesian Path to throw glider
 
         # Specify a list of waypoints
@@ -225,9 +231,10 @@ def main():
         )
         tutorial.go_to_joint_state(coord)
         print(coord)
-
-        #input("============ Press `Enter` to execute a movement using a pose goal ...")
-        #tutorial.go_to_pose_goal()
+        input("====")
+        tutorial.go_to_joint_state([0, 0, 0, 0, 0, 0])
+        input("============ Press `Enter` to execute a movement using a pose goal ...")
+        tutorial.go_to_pose_goal()
 
 
     except rospy.ROSInterruptException:
