@@ -4,6 +4,12 @@
 from __future__ import print_function
 from six.moves import input
 
+
+import message_generation 
+import sensor_msgs
+import std_msgs
+
+
 import re
 import sys
 import copy
