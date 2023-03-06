@@ -5,7 +5,7 @@ from __future__ import print_function
 from six.moves import input
 
 
-import message_generation 
+#import message_generation 
 import sensor_msgs
 import std_msgs
 
@@ -231,6 +231,9 @@ def main():
         coord = [float(s) for s in re.findall(r'[\d]*[.][\d]+',message)]
 
         tutorial = MoveGroupRcycl()
+        
+        sub_topic_info = "camera/color/neural_network"
+        print(sub_topic_info)
 
         input(
             "============ Press `Enter` to execute a movement using a joint state goal ..."
@@ -239,8 +242,8 @@ def main():
         print(coord)
         input("====")
         tutorial.go_to_joint_state([0, 0, 0, 0, 0, 0])
-        input("============ Press `Enter` to execute a movement using a pose goal ...")
-        tutorial.go_to_pose_goal()
+        #input("============ Press `Enter` to execute a movement using a pose goal ...")
+        #tutorial.go_to_pose_goal()
 
 
     except rospy.ROSInterruptException:
