@@ -6,9 +6,8 @@ from six.moves import input
 
 
 #import message_generation 
-import sensor_msgs
 import std_msgs
-
+from sensor_msgs.msg import Image, CameraInfo
 
 import re
 import sys
@@ -229,11 +228,25 @@ def main():
     try:
         message ="asdlf 0.9 as;dlkjf 0.1214 alsdfjk 0.15 klljsdf 0.123 klsjdflkj 1.0 sdfgsdfglkj 0.123"
         coord = [float(s) for s in re.findall(r'[\d]*[.][\d]+',message)]
+        #predefine message and pull below
 
+        #go  to home state
+        #wait for rospy message
+        #go to cartesian points
+        #go to bin
+        #loop
         tutorial = MoveGroupRcycl()
-        
+
+
+        rospy.init_node("movement_node")
         sub_topic_info = "camera/color/neural_network"
-        print(sub_topic_info)
+        coord = [0, 0, 0, 0, 0, 0]
+        info_sub = rospy.wait_for_message(sub_topic_info, CameraInfo)
+
+        print("Going to move to...")
+        print(info_sub)
+
+        input("====== Press enter if this is correct ==========")
 
         input(
             "============ Press `Enter` to execute a movement using a joint state goal ..."
