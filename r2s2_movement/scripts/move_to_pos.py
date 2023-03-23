@@ -23,6 +23,9 @@ from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
+from motoman_msgs.srv import ReadSingleIO, WriteSingleIO
+
+
 
 ## from moveit example code
 try:
@@ -68,6 +71,36 @@ def all_close(goal, actual, tolerance):
     return True
 
 
+def act_gripper(request):
+    ## Wrapper for rosservice to open/close gripper using Read/Write IO
+
+    # Wait for ros services to come up
+    rospy.wait_for_service('read_single_io')
+    rospy.wait_for_service('write_single_io')
+
+    # Create Handle for Service Proxy's
+    try:
+        read_single_io = rospy.ServiceProxy('read_single_io', ReadSingleIO)
+        write_single_io = rospy.ServiceProxy('write_single_io', WriteSingleIO)
+    except rospy.ServiceException as e:
+        print("Gripper IO Service Call failed: %s" % e)
+
+    # Send 'Write' IO Message
+    try:
+        write_status = write_single_io(10010, request)
+    except:
+        print("An exception occured. Unable to write to Single IO.")
+
+    # Call Read Service to check current position
+    read_status = read_single_io(10011).value
+    if read_status:
+        print('Gripper is Closed')
+    else:
+        print('Gripper is Open')
+
+    return read_status
+
+
 class MoveGroupRcycl(object):
     """MoveGroupRcycl"""
 
@@ -94,7 +127,8 @@ class MoveGroupRcycl(object):
         ## If you are using a different robot, change this value to the name of your robot
         ## arm planning group.
         ## This interface can be used to plan and execute motions:
-        group_name = "mh5l_arm"
+        group_name = "motoman_mh5l"
+        #group_name = "mh5l_arm"
         move_group = moveit_commander.MoveGroupCommander(group_name)
 
         ## Create a `DisplayTrajectory`_ ROS publisher which is used to display
@@ -195,6 +229,35 @@ class MoveGroupRcycl(object):
         current_pose = self.move_group.get_current_pose().pose
         return all_close(pose_goal, current_pose, 0.01)
 
+    def act_gripper(request):
+    ## Wrapper for rosservice to open/close gripper using Read/Write IO
+
+    # Wait for ros services to come up
+        rospy.wait_for_service('read_single_io')
+        rospy.wait_for_service('write_single_io')
+
+    # Create Handle for Service Proxy's
+        try:
+            read_single_io = rospy.ServiceProxy('read_single_io', ReadSingleIO)
+            write_single_io = rospy.ServiceProxy('write_single_io', WriteSingleIO)
+        except rospy.ServiceException as e:
+            print("Gripper IO Service Call failed: %s" % e)
+
+    # Send 'Write' IO Message
+        try:
+            write_status = write_single_io(10010, request)
+        except:
+            print("An exception occured. Unable to write to Single IO.")
+
+    # Call Read Service to check current position
+        read_status = read_single_io(10011).value
+        if read_status:
+            print('Gripper is Closed')
+        else:
+            print('Gripper is Open')
+
+        return read_status
+
     def plan_cartesian_path(self, scale=1):
         ## Plan Cartesian Path to throw glider
 
@@ -220,41 +283,93 @@ class MoveGroupRcycl(object):
 
         # Note: We are just planning, not asking move_group to actually move the robot yet:
         return plan, fraction
+def execute_plan(self, plan):
+    ## Execute a Plan
+    ## Use execute if you would like the robot to follow a plan that has already been computed:
+    self.move_group.execute(plan, wait=True)
 
+
+def plan_cart_path(self, scale=1):
+    ## Plan Cartesian Path
+
+    # Specify a list of waypoints
+    waypoints = []
+
+    wpose = self.move_group.get_current_pose().pose
+    wpose.position.z += scale * 0.1  # Move up (z)
+    wpose.position.x += scale * 0.8  # Forward (x)
+    waypoints.append(copy.deepcopy(wpose))
+
+
+
+    # We want the Cartesian path to be interpolated at a resolution of 1 cm
+    # which is why we will specify 0.01 as the eef_step in Cartesian
+    # translation.  We will disable the jump threshold by setting it to 0.0,
+    # ignoring the check for infeasible jumps in joint space, which is sufficient
+    # for this tutorial.
+    (plan, fraction) = self.move_group.compute_cartesian_path(
+                                       waypoints,   # waypoints to follow
+                                       0.01,        # eef_step
+                                       0.0)         # jump_threshold
+
+    # Note: We are just planning, not asking move_group to actually move the robot yet:
+    return plan, fraction
 
 
         
 def main():
     try:
-        message ="asdlf 0.9 as;dlkjf 0.1214 alsdfjk 0.15 klljsdf 0.123 klsjdflkj 1.0 sdfgsdfglkj 0.123"
-        coord = [float(s) for s in re.findall(r'[\d]*[.][\d]+',message)]
+        robot = MoveGroupRcycl()
+
         #predefine message and pull below
+
+        #rospy.init_node('movement_node')
+        #sub_topic_info = "camera/color/neural_network"
+
+        input("=========Return to home=========")
+        robot.go_to_joint_state([0,0,0,0,0,0])
+        input("=======Get Camera Data==========")
+        #info_sub = rospy.wait_for_message(sub_topic_info, CameraInfo)
+        input("=======Execute========")
+        [robot_plan, fraction] = robot.plan_cartesian_path()
+
+    
+
+        #executing plan
+        robot.move_group.execute(robot_plan, wait=True)
+        robot.execute_plan(robot_plan)
+
+        input("======griper=======")
+        #rospy.init_node('node_gripper', anonymous=True)
+        act_gripper(0)
+        
+
+
+
+
+        
 
         #go  to home state
         #wait for rospy message
         #go to cartesian points
         #go to bin
         #loop
-        tutorial = MoveGroupRcycl()
+ 
 
 
-        rospy.init_node("movement_node")
-        sub_topic_info = "camera/color/neural_network"
-        coord = [0, 0, 0, 0, 0, 0]
-        info_sub = rospy.wait_for_message(sub_topic_info, CameraInfo)
+        #coord = [0, 0, 0, 0, 0, 0]
+        #info_sub = rospy.wait_for_message(sub_topic_info, CameraInfo)
 
-        print("Going to move to...")
-        print(info_sub)
+        #print("Going to move to...")
+        #print(info_sub)
 
-        input("====== Press enter if this is correct ==========")
+        #input("====== Press enter if this is correct ==========")
 
-        input(
-            "============ Press `Enter` to execute a movement using a joint state goal ..."
-        )
-        tutorial.go_to_joint_state(coord)
-        print(coord)
-        input("====")
-        tutorial.go_to_joint_state([0, 0, 0, 0, 0, 0])
+        #input("============ Press `Enter` to execute a movement using a joint state goal ...")
+        #tutorial.go_to_joint_state(coord)
+        #print(coord)
+        #input("====")
+        #tutorial.go_to_joint_state([0, 0, 0, 0, 0, 0])
         #input("============ Press `Enter` to execute a movement using a pose goal ...")
         #tutorial.go_to_pose_goal()
 
