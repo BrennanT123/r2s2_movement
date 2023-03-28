@@ -127,7 +127,7 @@ class MoveGroupRcycl(object):
         ## If you are using a different robot, change this value to the name of your robot
         ## arm planning group.
         ## This interface can be used to plan and execute motions:
-        group_name = "motoman_mh5l"
+        group_name = "mh5l_pgn64"
         #group_name = "mh5l_arm"
         move_group = moveit_commander.MoveGroupCommander(group_name)
 
@@ -257,7 +257,7 @@ class MoveGroupRcycl(object):
             print('Gripper is Open')
 
         return read_status
-
+     #/robot_enable
     def plan_cartesian_path(self, scale=1):
         ## Plan Cartesian Path to throw glider
 
@@ -283,37 +283,71 @@ class MoveGroupRcycl(object):
 
         # Note: We are just planning, not asking move_group to actually move the robot yet:
         return plan, fraction
-def execute_plan(self, plan):
-    ## Execute a Plan
-    ## Use execute if you would like the robot to follow a plan that has already been computed:
-    self.move_group.execute(plan, wait=True)
+    def execute_plan(self, plan):
+        ## Execute a Plan
+        ## Use execute if you would like the robot to follow a plan that has already been computed:
+        self.move_group.execute(plan, wait=True)
+        return
+    def set_vel(self,max_vel):
+        ## Wrapper for Moveit Commander's max_velocity
+        ## Allowed range...   0.0 <= max_vel <= 1.0
+        self.move_group.set_max_velocity_scaling_factor(max_vel)
+        
+    def set_accel(self,max_accel):
+        ## Wrapper for Moveit Commander's max_acceleration
+        ## Allowed range...   0.0 <= max_vel <= 1.0
+        self.move_group.set_max_acceleration_scaling_factor(max_accel)
+
+    def goto_all_zeros(self):
+        ## Go to "ALL-Zeros" position
+        ## Get Current Position & Go to "All-Zeros" Position
+        ## Trajectory Type: JOINT MOTION defined by joint position
+
+        # Get Current Position
+        joint_goal = self.move_group.get_current_joint_values()
+
+        # Define "All-Zeros" Position
+        joint_goal[0] = 0
+        joint_goal[1] = 0
+        joint_goal[2] = 0
+        joint_goal[3] = 0
+        joint_goal[4] = 0
+        joint_goal[5] = 0
+
+        # Send action to move-to defined position
+        self.move_group.go(joint_goal, wait=True)
+
+        # Calling ``stop()`` ensures that there is no residual movement
+        self.move_group.stop()
+
+        # For testing:
+        current_joints = self.move_group.get_current_joint_values()
+        return all_close(joint_goal, current_joints, 0.01)
+    def plan_cart_path(self, scale=1):
+        ## Plan Cartesian Path
+
+        # Specify a list of waypoints
+        waypoints = []
+
+        wpose = self.move_group.get_current_pose().pose
+        wpose.position.z += scale * 0.1  # Move up (z)
+        wpose.position.x += scale * 0.8  # Forward (x)
+        waypoints.append(copy.deepcopy(wpose))
 
 
-def plan_cart_path(self, scale=1):
-    ## Plan Cartesian Path
 
-    # Specify a list of waypoints
-    waypoints = []
+        # We want the Cartesian path to be interpolated at a resolution of 1 cm
+        # which is why we will specify 0.01 as the eef_step in Cartesian
+        # translation.  We will disable the jump threshold by setting it to 0.0,
+        # ignoring the check for infeasible jumps in joint space, which is sufficient
+        # for this tutorial.
+        (plan, fraction) = self.move_group.compute_cartesian_path(
+                                        waypoints,   # waypoints to follow
+                                        0.01,        # eef_step
+                                        0.0)         # jump_threshold
 
-    wpose = self.move_group.get_current_pose().pose
-    wpose.position.z += scale * 0.1  # Move up (z)
-    wpose.position.x += scale * 0.8  # Forward (x)
-    waypoints.append(copy.deepcopy(wpose))
-
-
-
-    # We want the Cartesian path to be interpolated at a resolution of 1 cm
-    # which is why we will specify 0.01 as the eef_step in Cartesian
-    # translation.  We will disable the jump threshold by setting it to 0.0,
-    # ignoring the check for infeasible jumps in joint space, which is sufficient
-    # for this tutorial.
-    (plan, fraction) = self.move_group.compute_cartesian_path(
-                                       waypoints,   # waypoints to follow
-                                       0.01,        # eef_step
-                                       0.0)         # jump_threshold
-
-    # Note: We are just planning, not asking move_group to actually move the robot yet:
-    return plan, fraction
+        # Note: We are just planning, not asking move_group to actually move the robot yet:
+        return plan, fraction
 
 
         
@@ -325,23 +359,29 @@ def main():
 
         #rospy.init_node('movement_node')
         #sub_topic_info = "camera/color/neural_network"
-
+        robot.set_accel(0.2)
+        robot.set_vel(0.2)
+        #robot.go_to_joint_state([0,0,0,0,0,0])
         input("=========Return to home=========")
-        robot.go_to_joint_state([0,0,0,0,0,0])
-        input("=======Get Camera Data==========")
+        robot.goto_all_zeros()
+        
+
+        input("======")
+        robot.go_to_joint_state([0,0,pi/4,0,0,0])
+        #input("=======Get Camera Data==========")
         #info_sub = rospy.wait_for_message(sub_topic_info, CameraInfo)
-        input("=======Execute========")
-        [robot_plan, fraction] = robot.plan_cartesian_path()
+        #input("=======Execute========")
+        #[robot_plan, fraction] = robot.plan_cartesian_path()
 
     
 
         #executing plan
-        robot.move_group.execute(robot_plan, wait=True)
-        robot.execute_plan(robot_plan)
+        #robot.move_group.execute(robot_plan, wait=True)
+        #robot.execute_plan(robot_plan)
 
-        input("======griper=======")
+        #input("======griper=======")
         #rospy.init_node('node_gripper', anonymous=True)
-        act_gripper(0)
+        #act_gripper(0)
         
 
 
