@@ -127,8 +127,8 @@ class MoveGroupRcycl(object):
         ## If you are using a different robot, change this value to the name of your robot
         ## arm planning group.
         ## This interface can be used to plan and execute motions:
-        group_name = "mh5l_pgn64"
-        #group_name = "mh5l_arm"
+        #group_name = "mh5l_pgn64"
+        group_name = "mh5l"
         move_group = moveit_commander.MoveGroupCommander(group_name)
 
         ## Create a `DisplayTrajectory`_ ROS publisher which is used to display
@@ -317,11 +317,14 @@ class MoveGroupRcycl(object):
         # Send action to move-to defined position
         self.move_group.go(joint_goal, wait=True)
 
+
         # Calling ``stop()`` ensures that there is no residual movement
         self.move_group.stop()
 
         # For testing:
         current_joints = self.move_group.get_current_joint_values()
+
+
         return all_close(joint_goal, current_joints, 0.01)
     def plan_cart_path(self, scale=1):
         ## Plan Cartesian Path
@@ -331,7 +334,8 @@ class MoveGroupRcycl(object):
 
         wpose = self.move_group.get_current_pose().pose
         wpose.position.z += scale * 0.1  # Move up (z)
-        wpose.position.x += scale * 0.8  # Forward (x)
+        wpose.position.x += scale * 0.8
+        wpose.position.y += scale* -1.9  # Forward (x)
         waypoints.append(copy.deepcopy(wpose))
 
 
@@ -361,7 +365,7 @@ def main():
         #sub_topic_info = "camera/color/neural_network"
         robot.set_accel(0.2)
         robot.set_vel(0.2)
-        #robot.go_to_joint_state([0,0,0,0,0,0])
+        robot.go_to_joint_state([0,0,0,0,0,0])
         input("=========Return to home=========")
         robot.goto_all_zeros()
         
@@ -370,13 +374,13 @@ def main():
         robot.go_to_joint_state([0,0,pi/4,0,0,0])
         #input("=======Get Camera Data==========")
         #info_sub = rospy.wait_for_message(sub_topic_info, CameraInfo)
-        #input("=======Execute========")
-        #[robot_plan, fraction] = robot.plan_cartesian_path()
+        input("=======Execute========")
+        [robot_plan, fraction] = robot.plan_cartesian_path()
 
     
 
         #executing plan
-        #robot.move_group.execute(robot_plan, wait=True)
+        robot.move_group.execute(robot_plan, wait=True)
         #robot.execute_plan(robot_plan)
 
         #input("======griper=======")
