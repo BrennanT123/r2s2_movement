@@ -200,7 +200,7 @@ class MoveGroupRcycl(object):
 
 
     def go_to_pose_goal(self):
-        pose = [.1, -.5, 0.3, 0, radians(90),radians(90)]
+        pose = [.01, 0.1, 0.01, 0.1, .2, 0.1]
 
         #move_group = self.move_group
         q_goal = quaternion_from_euler(pose[3],pose[4],pose[5],axes='sxyz')
@@ -259,17 +259,18 @@ class MoveGroupRcycl(object):
         return read_status
      #/robot_enable
     def plan_cartesian_path(self, scale=1):
-        ## Plan Cartesian Path to throw glider
-
-        # Specify a list of waypoints
         waypoints = []
 
         wpose = self.move_group.get_current_pose().pose
-        wpose.position.z += scale * 0.1  # Move up (z)
-        wpose.position.x += scale * 0.8  # Forward (x)
+        wpose.position.z -= scale * 0.1  # First move up (z)
+
+        wpose.position.y += scale * 0.2  # and sideways (y)
         waypoints.append(copy.deepcopy(wpose))
 
+        wpose.position.x += scale * 0.1  # Second move forward/backwards in (x)
+        waypoints.append(copy.deepcopy(wpose))
 
+        
 
         # We want the Cartesian path to be interpolated at a resolution of 1 cm
         # which is why we will specify 0.01 as the eef_step in Cartesian
@@ -277,9 +278,8 @@ class MoveGroupRcycl(object):
         # ignoring the check for infeasible jumps in joint space, which is sufficient
         # for this tutorial.
         (plan, fraction) = self.move_group.compute_cartesian_path(
-                                        waypoints,   # waypoints to follow
-                                        0.05,        # eef_step
-                                        0.0)         # jump_threshold
+            waypoints, 0.01, 0.0  # waypoints to follow  # eef_step
+        )  # jump_threshold
 
         # Note: We are just planning, not asking move_group to actually move the robot yet:
         return plan, fraction
@@ -333,9 +333,9 @@ class MoveGroupRcycl(object):
         waypoints = []
 
         wpose = self.move_group.get_current_pose().pose
-        wpose.position.z += scale * 0.1  # Move up (z)
-        wpose.position.x += scale * 0.8
-        wpose.position.y += scale* -1.9  # Forward (x)
+        wpose.position.z += scale * -0.1  # Move up (z)
+        wpose.position.x += scale * 0
+        wpose.position.y += scale* 0  # Forward (x)
         waypoints.append(copy.deepcopy(wpose))
 
 
@@ -363,29 +363,30 @@ def main():
 
         #rospy.init_node('movement_node')
         #sub_topic_info = "camera/color/neural_network"
-        robot.set_accel(0.2)
-        robot.set_vel(0.2)
-        robot.go_to_joint_state([0,0,0,0,0,0])
+        robot.set_accel(0.1)
+        robot.set_vel(0.1)
+        #robot.go_to_joint_state([0,0,0,0,0,0])
         input("=========Return to home=========")
         robot.goto_all_zeros()
         
 
-        input("======")
-        robot.go_to_joint_state([0,0,pi/4,0,0,0])
+        input("===turn eef down ===")
+        #robot.go_to_joint_state([0,0,0,0,-pi/2,0])
         #input("=======Get Camera Data==========")
         #info_sub = rospy.wait_for_message(sub_topic_info, CameraInfo)
         input("=======Execute========")
-        [robot_plan, fraction] = robot.plan_cartesian_path()
+        robot.go_to_pose_goal()
+        #[robot_plan, fraction] = robot.plan_cartesian_path()
 
-    
+        input('===executing plan=')
 
         #executing plan
-        robot.move_group.execute(robot_plan, wait=True)
+        #robot.move_group.execute(robot_plan, wait=True)
         #robot.execute_plan(robot_plan)
 
-        #input("======griper=======")
+        input("======griper=======")
         #rospy.init_node('node_gripper', anonymous=True)
-        #act_gripper(0)
+        act_gripper(1)
         
 
 
