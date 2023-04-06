@@ -17,6 +17,7 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 from math import pi, radians
+from r2s2_neural_network.msg import bounding_box_msg
 
 
 from std_msgs.msg import String
@@ -362,7 +363,7 @@ def main():
         #predefine message and pull below
 
         #rospy.init_node('movement_node')
-        #sub_topic_info = "camera/color/neural_network"
+        sub_topic_info = "camera/color/neural_network"
         robot.set_accel(0.1)
         robot.set_vel(0.1)
         #robot.go_to_joint_state([0,0,0,0,0,0])
@@ -372,10 +373,11 @@ def main():
 
         input("===turn eef down ===")
         #robot.go_to_joint_state([0,0,0,0,-pi/2,0])
-        #input("=======Get Camera Data==========")
-        #info_sub = rospy.wait_for_message(sub_topic_info, CameraInfo)
+        input("=======Get Camera Data==========")
+        info_sub = rospy.wait_for_message(sub_topic_info, bounding_box_msg)
+        print(info_sub.x_3d)
         input("=======Execute========")
-        robot.go_to_pose_goal()
+        #robot.go_to_pose_goal()
         #[robot_plan, fraction] = robot.plan_cartesian_path()
 
         input('===executing plan=')
