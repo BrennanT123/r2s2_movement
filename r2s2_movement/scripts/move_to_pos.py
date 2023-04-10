@@ -360,6 +360,7 @@ def main():
     try:
         robot = MoveGroupRcycl()
 
+
         #predefine message and pull below
 
         #rospy.init_node('movement_node')
@@ -373,6 +374,8 @@ def main():
 
         input("===turn eef down ===")
         #robot.go_to_joint_state([0,0,0,0,-pi/2,0])
+
+        
         input("=======Get Camera Data==========")
         info_sub = rospy.wait_for_message(sub_topic_info, bounding_box_msg)
         print(info_sub.x_3d)
