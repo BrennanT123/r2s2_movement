@@ -5,8 +5,7 @@
   <description>
     <p>PROJECT: "r2s2" ROS Package</p>
     <p>
-      This package contains launch files and python script to execution the
-      motion of the r2s2 project
+      This package R2S2 robot movement controls and camera generation. 
     </p>
     <p>
       <b>Hardware Application</b>
@@ -51,7 +50,8 @@
   <exec_depend>moveit_visual_tools</exec_depend>
   <exec_depend>pcl_ros</exec_depend>
   <exec_depend>pcl_conversions</exec_depend>
-
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>realsense_camera</exec_depend>
   <test_depend>moveit_resources</test_depend>
 
 </package>

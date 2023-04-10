@@ -17,6 +17,15 @@ find_package(catkin REQUIRED
         pcl_conversions
         rospy
         )
+ add_message_files(
+	FILES
+	bounding_box_msg.msg
+	)
+
+ generate_messages(
+	DEPENDENCIES
+	std_msgs
+	)
 
 catkin_package(
     CATKIN_DEPENDS moveit_core moveit_visual_tools moveit_ros_planning_interface
