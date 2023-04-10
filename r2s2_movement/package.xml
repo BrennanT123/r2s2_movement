@@ -23,11 +23,16 @@
   </description>
 
   <author>brennanturi</author>
-  <maintainer email="turi.9@buckeyemail.osu.edu">Brennan Turi (AIMS Lab @ The Ohio State University)</maintainer>
+  <maintainer email="turi.9@buckeyemail.osu.edu">Brennan Turi</maintainer>
   <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>rospy</depend>
+  
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs></depend>
+  <depend>geometry_msgs</depend>
+  <build_depend>message_generation</build_depend>  
   
   <build_depend>moveit_core</build_depend>
   <build_depend>moveit_ros_planning</build_depend>
